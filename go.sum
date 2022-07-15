@@ -1,0 +1,12 @@
+github.com/apmckinlay/gsuneido v0.0.0-20190404155041-0b6cd442a18f/go.mod h1:JU2DOj5Fc6rol0yaT79Csr47QR0vONGwJtBNGRD7jmc=
+github.com/cockroachdb/apd v1.1.0/go.mod h1:8Sl8LxpKi29FqWXR16WEFZRNSz3SoPzUzeMeY4+DwBQ=
+github.com/ericlagergren/decimal v0.0.0-20211103172832-aca2edc11f73 h1:odNUt+pGupjtZyfaNIGLT/PUxT7r3fZ0Kf+QH9reIoM=
+github.com/ericlagergren/decimal v0.0.0-20211103172832-aca2edc11f73/go.mod h1:5sruVSMrZCk0U4hwRaGD0D8wIMFVsBWQqG74jQDFg4k=
+github.com/gokch/snum v0.0.0-20220715020440-67d56a9ec6fe h1:9OtmRHOZzDzMkifv1uRnHPvh3pxeFcT+dtJU5Jgosj0=
+github.com/gokch/snum v0.0.0-20220715020440-67d56a9ec6fe/go.mod h1:wbWgEt2+vXTetsfgRSgM9UeeBGFwvvGpuAe/0gtOSX4=
+github.com/google/btree v1.1.2 h1:xf4v41cLI2Z6FxbKm+8Bu+m8ifhj15JuZ9sa0jZCMUU=
+github.com/google/btree v1.1.2/go.mod h1:qOPhT0dTNdNzV6Z/lhRX0YXUafgPLFUh+gZMl761Gm4=
+github.com/lib/pq v1.0.0/go.mod h1:5WUZQaWbwv1U+lTReE5YruASi9Al49XbQIvNi/34Woo=
+github.com/pkg/errors v0.8.0/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
+github.com/shopspring/decimal v0.0.0-20180709203117-cd690d0c9e24/go.mod h1:M+9NzErvs504Cn4c5DxATwIqPbtswREoFCre64PpcG4=
+gopkg.in/inf.v0 v0.9.1/go.mod h1:cWUDdTG/fYaXco+Dcufb5Vnc6Gp2YChqWtbxRZE0mXw=
