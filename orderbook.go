@@ -1,9 +1,9 @@
-package order_book
+package orderbook
 
 import (
 	"fmt"
 
-	"github.com/gokch/snum"
+	"github.com/gokch/snum_sort/snum"
 	"github.com/google/btree"
 )
 
@@ -11,36 +11,36 @@ import (
 // OrderBook
 
 type OrderBook struct {
-	preciseType TD_PreciseType
+	precise PreciseType
 
-	precise_max TD_Precise
-	precise_min TD_Precise
+	max Step
+	min Step
 
-	map_precise map[TD_Precise]*Precise
+	precises map[Step]*Precise
 }
 
-func (t *OrderBook) Init(_stepType TD_PreciseType, _step_max TD_Precise, _step_min TD_Precise) error {
-	t.preciseType = _stepType
-	t.precise_max = _step_max
-	t.precise_min = _step_min
-	t.map_precise = make(map[TD_Precise]*Precise)
+func (t *OrderBook) Init(pt PreciseType, max Step, min Step) error {
+	t.precise = pt
+	t.max = max
+	t.min = min
+	t.precises = make(map[Step]*Precise)
 
-	if _stepType == TD_preciseType_dynamic {
-		if _step_min <= 0 {
-			return fmt.Errorf("minus td_step is not allow in dynamic type")
+	if pt == dynamic {
+		if min <= 0 {
+			return fmt.Errorf("minus step is not allow in dynamic type")
 		}
 	}
 
-	for idx := t.precise_max; idx >= t.precise_min; idx-- {
-		t.map_precise[idx] = &Precise{}
-		t.map_precise[idx].Init(_stepType, idx)
+	for idx := t.max; idx >= t.min; idx-- {
+		t.precises[idx] = &Precise{}
+		t.precises[idx].Init(pt, idx)
 	}
 	return nil
 }
 
-func (t *OrderBook) Update(_orderWay TD_OrderWay, _price *snum.Snum, _amount *snum.Snum) error {
-	for _, precise := range t.map_precise {
-		err := precise.Update(_orderWay, _price, _amount)
+func (t *OrderBook) Update(ow OrderWay, p *snum.Snum, a *snum.Snum) error {
+	for _, precise := range t.precises {
+		err := precise.Update(ow, p, a)
 		if err != nil {
 			return err
 		}
@@ -48,84 +48,84 @@ func (t *OrderBook) Update(_orderWay TD_OrderWay, _price *snum.Snum, _amount *sn
 	return nil
 }
 
-func (t *OrderBook) Get_step(_precise TD_Precise) *Precise {
-	precise_one, is_exist := t.map_precise[_precise]
-	if is_exist != true {
+func (t *OrderBook) Get(st Step) *Precise {
+	if one, exist := t.precises[st]; exist != true {
 		return nil
+	} else {
+		return one
 	}
-	return precise_one
 }
 
 //---------------------------------------------------------------------------------------------------//
 // Precise
 
 type Precise struct {
-	preciseType TD_PreciseType
-	precise     TD_Precise
+	pt PreciseType
+	st Step
 
-	map_group_buy  map[string]*Group
-	map_group_sell map[string]*Group
+	mapBuy  map[string]*Group
+	mapSell map[string]*Group
 
-	tree_group_buy  *btree.BTree
-	tree_group_sell *btree.BTree
+	treeBuy  *btree.BTree
+	treeSell *btree.BTree
 }
 
-func (t *Precise) Init(_preciseType TD_PreciseType, _precise TD_Precise) error {
-	t.preciseType = _preciseType
-	t.precise = _precise
+func (t *Precise) Init(pt PreciseType, st Step) error {
+	t.pt = pt
+	t.st = st
 
-	t.map_group_buy = make(map[string]*Group)
-	t.map_group_sell = make(map[string]*Group)
-	t.tree_group_buy = btree.New(3)
-	t.tree_group_sell = btree.New(3)
+	t.mapBuy = make(map[string]*Group)
+	t.mapSell = make(map[string]*Group)
+	t.treeBuy = btree.New(3)
+	t.treeSell = btree.New(3)
 	return nil
 }
 
-func (t *Precise) Update(_orderWay TD_OrderWay, _price *snum.Snum, _amount *snum.Snum) error {
-	price := (*_price).Copy()
-	amount := (*_amount).Copy()
-	sn_price := price.String()
+func (t *Precise) Update(ow OrderWay, price *snum.Snum, amount *snum.Snum) error {
+	price = (*price).Copy()
+	amount = (*amount).Copy()
+	sPrice := price.String()
 
 	var group *Group
-	if _orderWay == TD_orderWay_buy {
-		if t.preciseType == TD_preciseType_dynamic {
-			(*price).Round_up(int(t.precise))
+	if ow == Buy {
+		if t.pt == dynamic {
+			(*price).RoundUp(int(t.st))
 		} else {
-			(*price).Group_up(int(t.precise))
+			(*price).GroupUp(int(t.st))
 		}
-		sn_price = (*price).String()
-		group = t.map_group_buy[sn_price]
-	} else if _orderWay == TD_orderWay_sell {
-		if t.preciseType == TD_preciseType_dynamic {
-			(*price).Round_down(int(t.precise))
+		sPrice = (*price).String()
+		group = t.mapBuy[sPrice]
+	} else if ow == Sell {
+		if t.pt == dynamic {
+			(*price).RoundDown(int(t.st))
 		} else {
-			(*price).Group_down(int(t.precise))
+			(*price).GroupDown(int(t.st))
 		}
-		sn_price = (*price).String()
-		group = t.map_group_sell[sn_price]
+		sPrice = (*price).String()
+		group = t.mapSell[sPrice]
 	}
 
 	if group == nil { // 새로운 봉 생성
 		group = &Group{}
 		group.init(price, amount)
 
-		if _orderWay == TD_orderWay_buy {
-			t.tree_group_buy.ReplaceOrInsert(group)
-			t.map_group_buy[sn_price] = group
+		if ow == Buy {
+			t.treeBuy.ReplaceOrInsert(group)
+			t.mapBuy[sPrice] = group
 		} else {
-			t.tree_group_sell.ReplaceOrInsert(group)
-			t.map_group_sell[sn_price] = group
+			t.treeSell.ReplaceOrInsert(group)
+			t.mapSell[sPrice] = group
 		}
 	} else { // 기존 봉 수량 업데이트
-		group.change_amount_left(amount)
+		group.Change(amount)
 
-		if group.is_amount_empty() == true { // 수량이 비었을 경우 봉 삭제
-			if _orderWay == TD_orderWay_buy {
-				t.tree_group_buy.Delete(group)
-				delete(t.map_group_buy, sn_price)
+		if group.IsEmpty() == true { // 수량이 비었을 경우 봉 삭제
+			if ow == Buy {
+				t.treeBuy.Delete(group)
+				delete(t.mapBuy, sPrice)
 			} else {
-				t.tree_group_sell.Delete(group)
-				delete(t.map_group_sell, sn_price)
+				t.treeSell.Delete(group)
+				delete(t.mapSell, sPrice)
 			}
 		}
 	}
@@ -133,17 +133,17 @@ func (t *Precise) Update(_orderWay TD_OrderWay, _price *snum.Snum, _amount *snum
 }
 
 func (t *Precise) Print() {
-	fmt.Printf("buy ( %v )\n", t.tree_group_buy.Len())
-	t.tree_group_buy.Ascend(func(_i_item btree.Item) bool {
-		pt_group := _i_item.(*Group)
-		fmt.Printf("%10v : %10v\n", (*pt_group.Price).String(), (*pt_group.Amount).String())
+	fmt.Printf("buy ( %v )\n", t.treeBuy.Len())
+	t.treeBuy.Ascend(func(item btree.Item) bool {
+		group := item.(*Group)
+		fmt.Printf("%10v : %10v\n", (*group.Price).String(), (*group.Amount).String())
 		return true
 	})
 
-	fmt.Printf("sell ( %v )\n", t.tree_group_sell.Len())
-	t.tree_group_sell.Ascend(func(_i_item btree.Item) bool {
-		pt_group := _i_item.(*Group)
-		fmt.Printf("%10v : %10v\n", (*pt_group.Price).String(), (*pt_group.Amount).String())
+	fmt.Printf("sell ( %v )\n", t.treeSell.Len())
+	t.treeSell.Ascend(func(item btree.Item) bool {
+		group := item.(*Group)
+		fmt.Printf("%10v : %10v\n", (*group.Price).String(), (*group.Amount).String())
 		return true
 	})
 
@@ -157,26 +157,26 @@ type Group struct {
 	Amount *snum.Snum
 }
 
-func (t *Group) init(_price, _amount *snum.Snum) {
-	t.Price = _price
-	t.Amount = _amount
+func (t *Group) init(price, amount *snum.Snum) {
+	t.Price = price
+	t.Amount = amount
 }
 
-func (t *Group) change_amount_left(_amount *snum.Snum) {
-	t.Amount.Add(_amount)
+func (t *Group) Change(amount *snum.Snum) {
+	t.Amount.Add(amount)
 }
 
-func (t *Group) is_amount_empty() bool {
+func (t *Group) IsEmpty() bool {
 	zero := &snum.Snum{}
-	zero.Set__str("0")
+	zero.SetStr("0")
 	if (*t.Amount).Cmp(zero) <= 0 {
 		return true
 	}
 	return false
 }
 
-func (t *Group) Less(_item btree.Item) bool {
-	group := _item.(*Group)
+func (t *Group) Less(item btree.Item) bool {
+	group := item.(*Group)
 
 	// order way 가 같을 경우 price 비교
 	cmp := (*t.Price).Cmp(group.Price)

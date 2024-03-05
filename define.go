@@ -1,17 +1,17 @@
-package order_book
+package orderbook
 
-type TD_OrderWay uint8
-
-const (
-	TD_orderWay_buy TD_OrderWay = iota + 1
-	TD_orderWay_sell
-)
-
-type TD_PreciseType uint8
+type OrderWay uint8
 
 const (
-	TD_preciseType_dynamic TD_PreciseType = iota
-	TD_preciseType_fixed
+	Buy OrderWay = iota + 1
+	Sell
 )
 
-type TD_Precise int8
+type PreciseType uint8
+
+const (
+	dynamic PreciseType = iota
+	fixed
+)
+
+type Step int8
