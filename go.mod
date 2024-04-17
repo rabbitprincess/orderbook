@@ -1,10 +1,10 @@
-module github.com/gokch/orderbook
+module github.com/rabbitprincess/orderbook
 
 go 1.21
 
 require (
-	github.com/gokch/snum_sort v0.0.5
 	github.com/google/btree v1.1.2
+	github.com/rabbitprincess/snum_sort v0.0.6
 	github.com/stretchr/testify v1.8.1
 )
 

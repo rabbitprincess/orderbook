@@ -3,7 +3,7 @@ package orderbook
 import (
 	"testing"
 
-	"github.com/gokch/snum_sort/snum"
+	"github.com/rabbitprincess/snum_sort/snum"
 	"github.com/stretchr/testify/require"
 )
 
